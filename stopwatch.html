@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stopwatch</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .stopwatch {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .display {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            font-family: monospace;
+        }
+        
+        .milliseconds {
+            font-size: 2rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .controls button {
+            font-size: 1rem;
+            margin: 0.5rem;
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            color: #764ba2;
+        }
+        
+        .controls button:hover {
+            transform: scale(1.05);
+            background: #f0f0f0;
+        }
+        
+        .laps {
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+        }
+        
+        .lap-time {
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="stopwatch">
+        <h1>Stopwatch</h1>
+        <div class="display">
+            <span class="time">00:00:00</span>
+            <span class="milliseconds">.000</span>
+        </div>
+        <div class="controls">
+            <button id="startStop">Start</button>
+            <button id="reset">Reset</button>
+            <button id="lap">Lap</button>
+        </div>
+        <div class="laps"></div>
+    </div>
+
+    <script>
+        let startTime;
+        let elapsedTime = 0;
+        let timeInterval;
+        let isRunning = false;
+        let lapCount = 1;
+
+        const timeDisplay = document.querySelector('.time');
+        const msDisplay = document.querySelector('.milliseconds');
+        const startStopButton = document.getElementById('startStop');
+        const resetButton = document.getElementById('reset');
+        const lapButton = document.getElementById('lap');
+        const lapsContainer = document.querySelector('.laps');
+
+        function formatTime(ms) {
+            const date = new Date(ms);
+            const hours = date.getUTCHours().toString().padStart(2, '0');
+            const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+            const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+            const milliseconds = date.getUTCMilliseconds().toString().padStart(3, '0');
+            return {
+                main: `${hours}:${minutes}:${seconds}`,
+                ms: `.${milliseconds}`
+            };
+        }
+
+        function updateDisplay() {
+            const time = formatTime(elapsedTime);
+            timeDisplay.textContent = time.main;
+            msDisplay.textContent = time.ms;
+        }
+
+        function startStop() {
+            if (!isRunning) {
+                // Start
+                isRunning = true;
+                startTime = Date.now() - elapsedTime;
+                timeInterval = setInterval(() => {
+                    elapsedTime = Date.now() - startTime;
+                    updateDisplay();
+                }, 1); // Update every millisecond
+                startStopButton.textContent = 'Pause';
+            } else {
+                // Stop
+                isRunning = false;
+                clearInterval(timeInterval);
+                startStopButton.textContent = 'Start';
+            }
+        }
+
+        function reset() {
+            clearInterval(timeInterval);
+            isRunning = false;
+            elapsedTime = 0;
+            lapCount = 1;
+            updateDisplay();
+            startStopButton.textContent = 'Start';
+            lapsContainer.innerHTML = '';
+        }
+
+        function lap() {
+            if (isRunning) {
+                const time = formatTime(elapsedTime);
+                const lapTime = document.createElement('div');
+                lapTime.classList.add('lap-time');
+                lapTime.textContent = `Lap ${lapCount}: ${time.main}${time.ms}`;
+                lapsContainer.insertBefore(lapTime, lapsContainer.firstChild);
+                lapCount++;
+            }
+        }
+
+        startStopButton.addEventListener('click', startStop);
+        resetButton.addEventListener('click', reset);
+        lapButton.addEventListener('click', lap);
+
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>
